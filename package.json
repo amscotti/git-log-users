@@ -1,0 +1,20 @@
+{
+  "name": "git-log-users",
+  "version": "1.0.0",
+  "description": "Finds the start and end date for users in a Git repo",
+  "main": "git-log-users.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Anthony Scotti",
+    "email": "anthony.m.scotti@gmail.com",
+    "url": "https://128bit.io"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.16.0",
+    "console.table": "^0.10.0",
+    "simple-git": "^1.96.0"
+  }
+}
