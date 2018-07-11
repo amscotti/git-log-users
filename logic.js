@@ -1,47 +1,46 @@
 const simpleGit = require('simple-git')
+const { max, min } = require('lodash')
+const { reduce, sortBy, flow } = require('lodash/fp')
+const map = require('lodash/fp/map').convert({cap: false})
 require('console.table')
 
-const GroupCommitByKey = (commits, key) => {
-  const commitsByKey = new Map()
-  commits.forEach((commit) => {
-    if (!commitsByKey.has(commit[key])) commitsByKey.set(commit[key], [])
-    commitsByKey.get(commit[key]).push(new Date(commit.date))
-  })
-  return commitsByKey
-}
-
-const formatUserDetails = (users, formatDateFunction) => {
-  const usersDetail = []
-  users.forEach((val, key) => {
-    const dateArray = val.sort((a, b) => a - b)
-    usersDetail.push({
-      user: key,
-      commits: dateArray.length,
-      first_commit: dateArray[0],
-      last_commit: dateArray[dateArray.length - 1]
-    })
-  })
-
-  return usersDetail
-  // Sort by first commit date
-    .sort((a, b) => a.first_commit - b.first_commit)
-  // Format dates to Strings for output
-    .map(u => {
-      u.first_commit = formatDateFunction(u.first_commit)
-      u.last_commit = formatDateFunction(u.last_commit)
+const formatUserDetails = (commits, key, formatDate) => {
+  return flow(
+    // Group By `key`
+    reduce((result, value) => {
+      (result[value[key]] || (result[value[key]] = [])).push(new Date(value.date))
+      return result
+    }, {}),
+    // Map over items, and create format for ouput
+    map((value, index) => {
+      return {
+        user: index,
+        commits: value.length,
+        first_commit: min(value),
+        last_commit: max(value)
+      }
+    }),
+    // Sort by first_commit date
+    sortBy(['first_commit']),
+    // Format dates using the formatDate Function
+    map(u => {
+      u.first_commit = formatDate(u.first_commit)
+      u.last_commit = formatDate(u.last_commit)
       return u
     })
+  )(commits)
 }
 
 const readLogs = (logs) => {
-  // Group by User email with array of commit dates
-  const commitsByEmail = GroupCommitByKey(logs.all, 'author_email')
 
-  // Create array with user details
-  const usersDetail = formatUserDetails(commitsByEmail, d => d.toISOString().slice(0, 10))
+  const groupByKey = 'author_email'
+  const formatDate = date => date.toISOString().slice(0, 10)
+
+  // Format data for printing out
+  const users = formatUserDetails(logs.all, groupByKey, formatDate)
 
   // Print out details into a table
-  console.table(`${usersDetail.length} user details for ${logs.total} commits`, usersDetail)
+  console.table(`${users.length} user details for ${logs.total} commits`, users)
 }
 
 const getGitLogs = (gitRepo) => {

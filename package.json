@@ -15,6 +15,7 @@
   "dependencies": {
     "commander": "^2.16.0",
     "console.table": "^0.10.0",
+    "lodash": "^4.17.10",
     "simple-git": "^1.96.0"
   }
 }
