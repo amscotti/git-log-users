@@ -1,14 +1,16 @@
 const simpleGit = require('simple-git')
-const { max, min } = require('lodash')
+const { get, set, max, min, first, last } = require('lodash')
 const { reduce, sortBy, flow } = require('lodash/fp')
 const map = require('lodash/fp/map').convert({cap: false})
 require('console.table')
+
+const update = (key, fn) => (o) => set(o, key, fn(get(o, key)))
 
 const formatUserDetails = (commits, key, formatDate) => {
   return flow(
     // Group By `key`
     reduce((result, value) => {
-      (result[value[key]] || (result[value[key]] = [])).push(new Date(value.date))
+      result[value[key]] = (result[value[key]] || []).concat(new Date(value.date))
       return result
     }, {}),
     // Map over items, and create format for ouput
@@ -23,16 +25,12 @@ const formatUserDetails = (commits, key, formatDate) => {
     // Sort by first_commit date
     sortBy(['first_commit']),
     // Format dates using the formatDate Function
-    map(u => {
-      u.first_commit = formatDate(u.first_commit)
-      u.last_commit = formatDate(u.last_commit)
-      return u
-    })
+    map(update('first_commit', formatDate)),
+    map(update('last_commit', formatDate))
   )(commits)
 }
 
 const readLogs = (logs) => {
-
   const groupByKey = 'author_email'
   const formatDate = date => date.toISOString().slice(0, 10)
 
@@ -40,7 +38,8 @@ const readLogs = (logs) => {
   const users = formatUserDetails(logs.all, groupByKey, formatDate)
 
   // Print out details into a table
-  console.table(`${users.length} user details for ${logs.total} commits`, users)
+  const title = `${users.length} user details for ${logs.total} commits, from ${first(users).first_commit} to ${last(users).last_commit}.`
+  console.table(title, users)
 }
 
 const getGitLogs = (gitRepo) => {
