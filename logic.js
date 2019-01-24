@@ -4,13 +4,13 @@ const { reduce, sortBy, flow } = require('lodash/fp')
 const map = require('lodash/fp/map').convert({cap: false})
 require('console.table')
 
-const update = (key, fn) => (o) => set(o, key, fn(get(o, key)))
+const update = (key, fn) => o => set(o, key, fn(get(o, key)))
 
 const formatUserDetails = (commits, key, formatDate) => {
   return flow(
     // Group By `key`
     reduce((result, value) => {
-      result[value[key]] = (result[value[key]] || []).concat(new Date(value.date))
+      result[value[key]] = [...(result[value[key]] || []), new Date(value.date)]
       return result
     }, {}),
     // Map over items, and create format for ouput
@@ -30,7 +30,7 @@ const formatUserDetails = (commits, key, formatDate) => {
   )(commits)
 }
 
-const readLogs = (logs) => {
+const readLogs = logs => {
   const groupByKey = 'author_email'
   const formatDate = date => date.toISOString().slice(0, 10)
 
@@ -42,7 +42,7 @@ const readLogs = (logs) => {
   console.table(title, users)
 }
 
-const getGitLogs = (gitRepo) => {
+const getGitLogs = gitRepo => {
   const git = simpleGit(gitRepo)
   git.log((err, result) => {
     if (err) {
