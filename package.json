@@ -1,6 +1,6 @@
 {
   "name": "git-log-users",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Finds the start and end date for users in a Git repo",
   "main": "git-log-users.js",
   "scripts": {
@@ -13,9 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "commander": "^2.16.0",
-    "console.table": "^0.10.0",
-    "lodash": "^4.17.19",
-    "simple-git": "^1.96.0"
+    "commander": "^10.0.1",
+    "simple-git": "^3.18.0"
   }
 }

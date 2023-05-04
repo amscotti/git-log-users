@@ -1,56 +1,67 @@
-const simpleGit = require('simple-git')
-const { get, set, max, min, first, last } = require('lodash')
-const { reduce, sortBy, flow } = require('lodash/fp')
-const map = require('lodash/fp/map').convert({cap: false})
-require('console.table')
+const simpleGit = require('simple-git');
 
-const update = (key, fn) => o => set(o, key, fn(get(o, key)))
+// Formats a Date object into a human-readable string
+const formatDate = (date) => date.toISOString().slice(0, 10);
 
-const formatUserDetails = (commits, key, formatDate) => {
-  return flow(
-    // Group By `key`
-    reduce((result, value) => {
-      result[value[key]] = [...(result[value[key]] || []), new Date(value.date)]
-      return result
-    }, {}),
-    // Map over items, and create format for ouput
-    map((value, index) => {
-      return {
-        user: index,
-        commits: value.length,
-        first_commit: min(value),
-        last_commit: max(value)
+// Groups commits by a given key and calculates user statistics
+const formatUserDetails = (commits, key) => {
+  const grouped = commits.reduce((result, value) => {
+    const keyValue = value[key];
+    const current = result[keyValue] || [];
+    result[keyValue] = [...current, new Date(value.date)];
+    return result;
+  }, {});
+
+  const userDetails = Object.entries(grouped).map(([index, value]) => {
+    let minDate = value[0];
+    let maxDate = value[0];
+
+    for (const date of value) {
+      if (date < minDate) {
+        minDate = date;
       }
-    }),
-    // Sort by first_commit date
-    sortBy(['first_commit']),
-    // Format dates using the formatDate Function
-    map(update('first_commit', formatDate)),
-    map(update('last_commit', formatDate))
-  )(commits)
-}
+      if (date > maxDate) {
+        maxDate = date;
+      }
+    }
 
-const readLogs = logs => {
-  const groupByKey = 'author_email'
-  const formatDate = date => date.toISOString().slice(0, 10)
+    return {
+      user: index,
+      commits: value.length,
+      first_commit: minDate,
+      last_commit: maxDate,
+    };
+  }).sort((a, b) => a.first_commit.getTime() - b.first_commit.getTime());
 
-  // Format data for printing out
-  const users = formatUserDetails(logs.all, groupByKey, formatDate)
+  return userDetails.map((user) => ({
+    ...user,
+    first_commit: formatDate(user.first_commit),
+    last_commit: formatDate(user.last_commit),
+  }));
+};
 
-  // Print out details into a table
-  const title = `${users.length} user details for ${logs.total} commits, from ${first(users).first_commit} to ${last(users).last_commit}.`
-  console.table(title, users)
-}
+// Displays commit statistics in a readable format
+const readLogs = (logs) => {
+  const groupByKey = 'author_email';
 
-const getGitLogs = gitRepo => {
-  const git = simpleGit(gitRepo)
+  const users = formatUserDetails(logs.all, groupByKey);
+
+  const title = `\n${users.length} user details for ${logs.total} commits, from ${users[0].first_commit} to ${users[users.length - 1].last_commit}.`;
+
+  console.log(title);
+  console.table(users);
+};
+
+// Fetches commit logs and processes them
+const getGitLogs = (gitRepo) => {
+  const git = simpleGit(gitRepo);
   git.log((err, result) => {
     if (err) {
-      console.log(`Unable to read git repo from ${gitRepo}`)
-      return
+      console.log(`Unable to read git repo from ${gitRepo}`);
+      return;
     }
-    readLogs(result)
-  })
-}
+    readLogs(result);
+  });
+};
 
-module.exports = { getGitLogs }
+module.exports = { getGitLogs };
