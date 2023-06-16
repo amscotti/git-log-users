@@ -1,10 +1,15 @@
 {
   "name": "git-log-users",
-  "version": "2.0.0",
+  "type": "module",
+  "version": "2.0.1",
   "description": "Finds the start and end date for users in a Git repo",
   "main": "git-log-users.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/git-log-users.js",
+    "prepare": "husky install",
+    "lint": "standard",
+    "lint:fix": "standard --fix",
+    "test": ""
   },
   "author": {
     "name": "Anthony Scotti",
@@ -13,7 +18,22 @@
   },
   "license": "MIT",
   "dependencies": {
+    "cli-table3": "^0.6.3",
     "commander": "^10.0.1",
     "simple-git": "^3.18.0"
+  },
+  "devDependencies": {
+    "husky": "^8.0.0",
+    "lint-staged": "^13.2.2",
+    "prettier": "2.8.8",
+    "standard": "^17.1.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm run lint:fix"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }
