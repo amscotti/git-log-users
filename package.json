@@ -20,7 +20,7 @@
   "dependencies": {
     "cli-table3": "^0.6.3",
     "commander": "^10.0.1",
-    "simple-git": "^3.18.0"
+    "simple-git": "^4.0.1"
   },
   "devDependencies": {
     "husky": "^8.0.0",
