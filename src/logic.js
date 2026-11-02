@@ -1,4 +1,4 @@
-import simpleGit from 'simple-git'
+import { simpleGit } from 'simple-git'
 import Table from 'cli-table3'
 
 const table = new Table({
